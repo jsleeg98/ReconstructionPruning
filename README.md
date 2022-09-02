@@ -1,2 +1,7 @@
-# ReconstructionPruning
-Reconstruct Pruning model
+# Project
+Reconstruct structured pruning
+
+# model
+* YOLOv3
+
+
