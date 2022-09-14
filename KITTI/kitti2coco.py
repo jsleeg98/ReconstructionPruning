@@ -5,10 +5,10 @@ import sys
 
 # data_set path
 kitti_img_path = '/home/openlab/DH_Lee/datasets/KITTI/images/'
-kitti_label_path = '/home/openlab/DH_Lee/datasets/KITTI/labels/'
+kitti_label_path = '/home/openlab/DH_Lee/datasets/KITTI/kitti_labels/'
 
 # transformed lables path
-kitti_label_tosave_path = '/home/openlab/DH_Lee/datasets/KITTI/coco_labels/'
+kitti_label_tosave_path = '/home/openlab/DH_Lee/datasets/KITTI/labels/'
 
 # the real ptah of your data set
 kitti_data_real_path = '/home/openlab/DH_Lee/datasets/KITTI/images/'
@@ -16,7 +16,7 @@ kitti_data_real_path = '/home/openlab/DH_Lee/datasets/KITTI/images/'
 index = 0
 cvfont = cv2.FONT_HERSHEY_SIMPLEX
 
-kitti_names = open('kitti.names', 'r')
+kitti_names = open('./KITTI/data/classes.names', 'r')
 kitti_names_contents = kitti_names.readlines()
 kitti_images = os.listdir(kitti_img_path)
 kitti_labels = os.listdir(kitti_label_path)
@@ -37,7 +37,6 @@ for img in kitti_images:
     f.write(kitti_data_real_path + img + '\n')
 f.close()
 
-import pdb; pdb.set_trace()
 
 for indexi in range(len(kitti_images)):
     kitti_img_totest_path = kitti_img_path + kitti_images[indexi]
@@ -72,10 +71,10 @@ for indexi in range(len(kitti_images)):
                 intx2 = int(x2)
                 inty2 = int(y2)
 
-                bbox_center_x = float((x1 + (x2 - x1) / 2.0) / img_width)
-                bbox_center_y = float((y1 + (y2 - y1) / 2.0) / img_height)
-                bbox_width = float((x2 - x1) / img_width)
-                bbox_height = float((y2 - y1) / img_height)
+                bbox_center_x = round(float((x1 + (x2 - x1) / 2.0) / img_width), 6)
+                bbox_center_y = round(float((y1 + (y2 - y1) / 2.0) / img_height), 6)
+                bbox_width = round(float((x2 - x1) / img_width), 6)
+                bbox_height = round(float((y2 - y1) / img_height), 6)
 
                 # print(kitti_names_contents[class_num])
                 # cv2.putText()
