@@ -59,7 +59,6 @@ class ListDataset(Dataset):
     def __init__(self, list_path, img_size=416, multiscale=True, transform=None):
         with open(list_path, "r") as file:
             self.img_files = file.readlines()
-        self.org_labels = np.array([0, 2, 3, 5, 7])
         self.label_files = []
         for path in self.img_files:
             image_dir = os.path.dirname(path)
@@ -101,12 +100,9 @@ class ListDataset(Dataset):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 boxes = np.loadtxt(label_path).reshape(-1, 5)
-                for box in boxes:
-                    box[0] = np.where(self.org_labels == box[0])[0]
         except Exception:
             print(f"Could not read label '{label_path}'.")
             return
-
         # -----------
         #  Transform
         # -----------
