@@ -12,7 +12,12 @@ Reconstruct structured pruning
 * weight_decay : 0.0001
 * epoch : 200
 * lr : 0.0001 -> 0.00001(100 epoch) -> 0.000001(150 epoch)
-* Best MAP : 0.7432
+* Best MAP : 0.7704
 
-![test_graph](/KITTI/train_result/original_1/graph/yolov3_test_MAP_graph_fold1.png)
-![train_loss](/KITTI/train_result/original_1/graph/yolov3_train_loss_graph_fold1.png)
+|-|fold1|fold2|fold3|fold4|fold5|
+|:--:|:--:|:--:|:--:|:--:|:--:|
+|MAP|0.7432|0.7592|0.7494|0.7581|0.7704|
+
+|fold5 test MAP graph|fold5 train loss graph|
+|:--:|:--:|
+|![test_graph](/KITTI/train_result/original_5/graph/yolov3_test_MAP_graph_fold5.png)|![train_loss](/KITTI/train_result/original_5/graph/yolov3_train_loss_graph_fold5.png)|
