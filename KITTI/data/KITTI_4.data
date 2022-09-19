@@ -1,0 +1,4 @@
+classes= 8
+train=KITTI/data/train_4.txt
+valid=KITTI/data/valid_4.txt
+names=KITTI/data/classes.names
