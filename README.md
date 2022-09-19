@@ -16,7 +16,7 @@ Reconstruct structured pruning
 
 |-|fold1|fold2|fold3|fold4|fold5|
 |:--:|:--:|:--:|:--:|:--:|:--:|
-|MAP|0.7432|0.7592|0.7494|0.7581|0.7704|
+|MAP|0.7432|0.7608|0.7494|0.7588|0.7704|
 
 |fold5 test MAP graph|fold5 train loss graph|
 |:--:|:--:|
