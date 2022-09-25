@@ -25,7 +25,7 @@ Reconstruct structured pruning
 ## KITTI compression
 |model|FLOPs(G)|FLOPs ratio|parameters|mAP|
 |:--:|:--:|:--:|:--:|:--:|
-|original|16.414|-|61,626,499|0.7704|
+|original|16.414|100%|61,626,499|0.7704|
 |compress 0.3|7.184|43.77%|12,149,889|0.8116|
 |compress 0.5|4.776|29.10%|7,182,739|0.7820|
 |compress 0.7|3.228|19.67%|5,869,315|0.7367|
