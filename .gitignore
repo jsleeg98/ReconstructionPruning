@@ -3,3 +3,7 @@
 /KITTI/train_result/original_3/weight/
 /KITTI/train_result/original_4/weight/
 /KITTI/train_result/original_5/weight/
+/KITTI/train_result/original_5/compress/FPGM_0.3/weight/
+/KITTI/train_result/original_5/compress/FPGM_0.5/weight/
+/KITTI/train_result/original_5/compress/FPGM_0.7/weight/
+/KITTI/train_result/original_5/compress/FPGM_0.9/weight/
