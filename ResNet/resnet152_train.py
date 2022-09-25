@@ -7,32 +7,46 @@ import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
-writer=SummaryWriter('logs/ResNet/resnet152_2/')
+writer=SummaryWriter('logs/ResNet/resnet152_4/')
 
-transform = transforms.Compose(
-    [transforms.ToTensor(),
-     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+# train dataset
+# data augmentation
+# data preprocessing
+transform_train = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(15),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5070751592371323, 0.48654887331495095, 0.4409178433670343), (0.2673342858792401, 0.2564384629170883, 0.27615047132568404))
+])
 
-trainset = torchvision.datasets.CIFAR100('../datasets/CIFAR100/', train=True, download=True, transform=transform)
+# test dataset
+# data preprocessing
+transform_test = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5070751592371323, 0.48654887331495095, 0.4409178433670343), (0.2673342858792401, 0.2564384629170883, 0.27615047132568404))
+])
+
+trainset = torchvision.datasets.CIFAR100('../datasets/CIFAR100/', train=True, download=True, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=8)
 
-testset = torchvision.datasets.CIFAR100('../datasets/CIFAR100/', train=False, download=True, transform=transform)
+testset = torchvision.datasets.CIFAR100('../datasets/CIFAR100/', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=False)
 
-model = models.resnet152(weights=models.ResNet152_Weights.IMAGENET1K_V1)  # ImageNet pretrained model
+model = models.resnet152(weights=models.ResNet152_Weights.IMAGENET1K_V2)  # ImageNet pretrained model
 model.fc.out_features = 100  # CIFAR100을 위한 model 바꿈
 
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr = 0.0001, momentum=0.9)
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = 100, eta_min=0.00001)
+optimizer = optim.SGD(model.parameters(), lr = 0.1, momentum=0.9, weight_decay=5e-4)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2)
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(f'device : {device}')
 model.to(device)
 
 best_acc = 0
-for epoch in range(100):  # loop over the dataset multiple times
+for epoch in range(200):  # loop over the dataset multiple times
     model.train()
     running_loss = 0.0
     print(f'epoch : {epoch + 1}')
@@ -69,6 +83,7 @@ for epoch in range(100):  # loop over the dataset multiple times
 
     if best_acc < acc:
         torch.save(model.state_dict(), './ResNet/train_result/original/weight/resnet152_CIFAR100_best_v2.pth')
+        best_acc = acc
         print('save model')
     writer.flush()
 
