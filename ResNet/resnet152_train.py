@@ -1,13 +1,15 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from torchvision import models
 import torch.optim as optim
 import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
-
-writer=SummaryWriter('logs/ResNet/resnet152_4/')
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from models import resnet
+writer=SummaryWriter('logs/ResNet/resnet152_7/')
 
 # train dataset
 # data augmentation
@@ -33,10 +35,7 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True,
 testset = torchvision.datasets.CIFAR100('../datasets/CIFAR100/', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=False)
 
-model = models.resnet152(weights=models.ResNet152_Weights.IMAGENET1K_V2)  # ImageNet pretrained model
-model.fc.out_features = 100  # CIFAR100을 위한 model 바꿈
-
-
+model = resnet.resnet152(num_classes=100)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr = 0.1, momentum=0.9, weight_decay=5e-4)
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2)
