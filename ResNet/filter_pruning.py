@@ -139,5 +139,6 @@ for name, module in model.named_modules():
 torch.save(model.state_dict(), f'./ResNet/train_result/pruning/weight/{args.model}_{args.ln}_{args.compression_ratio}_test.pth')
 
 print(f'best acc : {best_acc}')
+writer.add_text('best acc', str(best_acc))
 writer.close()
 
