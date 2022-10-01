@@ -61,6 +61,10 @@ elif args.model == 'resnet18':
 for name, module in model.named_modules():
     if isinstance(module, torch.nn.Conv2d):
         prune.ln_structured(module, name='weight', amount=args.compression_ratio, n=args.ln, dim=0)
+        mask = torch.norm(module.weight_mask, 1, dim=(1, 2, 3))
+    if isinstance(module, torch.nn.BatchNorm2d):
+        prune.l1_unstructured(module, name='weight', amount=args.compression_ratio, importance_scores=mask)
+        prune.l1_unstructured(module, name='bias', amount=args.compression_ratio, importance_scores=mask)
 
 device = torch.device(args.gpu if torch.cuda.is_available() else 'cpu')
 print(f'device : {device}')
