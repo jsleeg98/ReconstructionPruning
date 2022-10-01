@@ -125,10 +125,18 @@ for epoch in range(100):  # loop over the dataset multiple times
     writer.add_scalar("Acc/test", acc, epoch)
 
     if best_acc < acc:
-        torch.save(model.state_dict(), f'./ResNet/train_result/pruning/weight/{args.model}_{args.ln}_{args.compression_ratio}.pth')
         best_acc = acc
         print('save model')
     writer.flush()
+
+
+for name, module in model.named_modules():
+    if isinstance(module, torch.nn.Conv2d):
+        prune.remove(module, 'weight')
+    if isinstance(module, torch.nn.BatchNorm2d):
+        prune.remove(module, 'weight')
+        prune.remove(module, 'bias')
+torch.save(model.state_dict(), f'./ResNet/train_result/pruning/weight/{args.model}_{args.ln}_{args.compression_ratio}_test.pth')
 
 print(f'best acc : {best_acc}')
 writer.close()
