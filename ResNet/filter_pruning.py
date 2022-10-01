@@ -23,6 +23,10 @@ args = parser.parse_args()
 
 writer=SummaryWriter(f'logs/ResNet_pruning/{args.tb}')
 
+for name, value in vars(args).items():
+    print(f'{name} : {value}')
+    writer.add_text(f'{name}', f'{value}')
+
 # train dataset
 # data augmentation
 # data preprocessing
