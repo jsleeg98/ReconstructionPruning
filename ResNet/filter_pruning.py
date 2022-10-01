@@ -13,11 +13,11 @@ from models import resnet
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-model', type=str)
-parser.add_argument('-tb', type=str)
-parser.add_argument('-c', '--compression_ratio', type=float)
-parser.add_argument('-g', '--gpu', type=str)
-parser.add_argument('-ln', type=int)
+parser.add_argument('-model', type=str, default='resnet34')
+parser.add_argument('-tb', type=str, default='test')
+parser.add_argument('-c', '--compression_ratio', type=float, default=0.7)
+parser.add_argument('-g', '--gpu', type=str, default='cuda:0')
+parser.add_argument('-ln', type=int, default=1)
 
 args = parser.parse_args()
 
