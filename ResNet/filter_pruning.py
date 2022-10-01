@@ -117,7 +117,7 @@ for epoch in range(100):  # loop over the dataset multiple times
     writer.add_scalar("Acc/test", acc, epoch)
 
     if best_acc < acc:
-        torch.save(model.state_dict(), './ResNet/train_result/pruning/weight/resnet34_0.5.pth')
+        torch.save(model.state_dict(), f'./ResNet/train_result/pruning/weight/{args.model}_{args.ln}_{args.compression_ratio}.pth')
         best_acc = acc
         print('save model')
     writer.flush()
