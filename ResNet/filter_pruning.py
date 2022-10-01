@@ -13,15 +13,19 @@ from models import resnet
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-model', type=str)
-parser.add_argument('-tb', type=str)
-parser.add_argument('-c', '--compression_ratio', type=float)
-parser.add_argument('-g', '--gpu', type=str)
-parser.add_argument('-ln', type=int)
+parser.add_argument('-model', type=str, default='resnet34')
+parser.add_argument('-tb', type=str, default='test')
+parser.add_argument('-c', '--compression_ratio', type=float, default=0.7)
+parser.add_argument('-g', '--gpu', type=str, default='cuda:0')
+parser.add_argument('-ln', type=int, default=1)
 
 args = parser.parse_args()
 
 writer=SummaryWriter(f'logs/ResNet_pruning/{args.tb}')
+
+for name, value in vars(args).items():
+    print(f'{name} : {value}')
+    writer.add_text(f'{name}', f'{value}')
 
 # train dataset
 # data augmentation
@@ -57,6 +61,10 @@ elif args.model == 'resnet18':
 for name, module in model.named_modules():
     if isinstance(module, torch.nn.Conv2d):
         prune.ln_structured(module, name='weight', amount=args.compression_ratio, n=args.ln, dim=0)
+        mask = torch.norm(module.weight_mask, 1, dim=(1, 2, 3))
+    if isinstance(module, torch.nn.BatchNorm2d):
+        prune.l1_unstructured(module, name='weight', amount=args.compression_ratio, importance_scores=mask)
+        prune.l1_unstructured(module, name='bias', amount=args.compression_ratio, importance_scores=mask)
 
 device = torch.device(args.gpu if torch.cuda.is_available() else 'cpu')
 print(f'device : {device}')
@@ -117,11 +125,20 @@ for epoch in range(100):  # loop over the dataset multiple times
     writer.add_scalar("Acc/test", acc, epoch)
 
     if best_acc < acc:
-        torch.save(model.state_dict(), './ResNet/train_result/pruning/weight/resnet34_0.5.pth')
         best_acc = acc
         print('save model')
     writer.flush()
 
+
+for name, module in model.named_modules():
+    if isinstance(module, torch.nn.Conv2d):
+        prune.remove(module, 'weight')
+    if isinstance(module, torch.nn.BatchNorm2d):
+        prune.remove(module, 'weight')
+        prune.remove(module, 'bias')
+torch.save(model.state_dict(), f'./ResNet/train_result/pruning/weight/{args.model}_{args.ln}_{args.compression_ratio}_test.pth')
+
 print(f'best acc : {best_acc}')
+writer.add_text('best acc', str(best_acc))
 writer.close()
 
