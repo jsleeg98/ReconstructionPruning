@@ -17,6 +17,7 @@ class PruneHandler():
     def __init__(self, model):
         self.model = model
         self.remain_index = []
+        self.union_index = []
 
     def get_remain_index(self):
         for name, module in self.model.named_children():
@@ -40,4 +41,21 @@ class PruneHandler():
                         li_li_remain_index.append(li_remain_index)
                 self.remain_index.append(li_li_remain_index)
 
+    def union_remain_index(self):
+        first = self.remain_index[0]  # resnet34 first conv1 insert to layer1
+        self.remain_index[1].insert(0, [first])
+        del self.remain_index[0]
+
+        for li_li_remain_index in self.remain_index:
+            set_union_index = set()
+            for li_remain_index in li_li_remain_index:
+                if len(li_remain_index) != 3:
+                    set_remain_index = set(li_remain_index[-1])
+                    set_union_index = set_union_index.union(set_remain_index)
+                elif len(li_remain_index) == 3:
+                    set_remain_index = set(li_remain_index[1])
+                    set_union_index = set_union_index.union(set_remain_index)
+                    set_remain_index = set(li_remain_index[2])
+                    set_union_index = set_union_index.union(set_remain_index)
+            self.union_index.append(list(set_union_index))
 
