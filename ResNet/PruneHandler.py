@@ -59,3 +59,20 @@ class PruneHandler():
                     set_union_index = set_union_index.union(set_remain_index)
             self.union_index.append(list(set_union_index))
 
+        # update remain index
+        for li_li_remain_index, li_union_index in zip(self.remain_index, self.union_index):
+            for li_remain_index in li_li_remain_index:
+                if len(li_remain_index) != 3:
+                    li_remain_index[-1] = li_union_index
+                elif len(li_remain_index) == 3:
+                    li_remain_index[1] = li_union_index
+                    li_remain_index[2] = li_union_index
+
+        # print remain index len
+        # for li_li_remain_index in self.remain_index:
+        #     for i, li_remain_index in enumerate(li_li_remain_index):
+        #         print(i)
+        #         for j, remain_index in enumerate(li_remain_index):
+        #
+        #             print(len(remain_index))
+        #         print('-' * 20)
