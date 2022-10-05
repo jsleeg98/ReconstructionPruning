@@ -120,6 +120,7 @@ macs, params = get_model_complexity_info(model, (3, 32, 32), as_strings=True,
                                            print_per_layer_stat=False, verbose=True)
 print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
 print('{:<30}  {:<8}'.format('Number of parameters: ', params))
+writer.add_text('MAC', str(macs))
 
 device = torch.device(args.gpu if torch.cuda.is_available() else 'cpu')
 print(f'device : {device}')
