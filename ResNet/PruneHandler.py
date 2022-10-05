@@ -94,11 +94,10 @@ class PruneHandler():
             elif isinstance(module, torch.nn.BatchNorm2d):
                 module.weight = torch.nn.parameter.Parameter(torch.index_select(module.weight, 0, torch.tensor(flatten_remain_index[idx])))
                 module.bias = torch.nn.parameter.Parameter(torch.index_select(module.bias, 0, torch.tensor(flatten_remain_index[idx])))
-                module.running_mean = torch.nn.parameter.Parameter(
-                    torch.index_select(module.running_mean, 0, torch.tensor(flatten_remain_index[idx])))
-                module.running_var = torch.nn.parameter.Parameter(
-                    torch.index_select(module.running_var, 0, torch.tensor(flatten_remain_index[idx])))
+                module.running_mean = torch.index_select(module.running_mean, 0, torch.tensor(flatten_remain_index[idx]))
+                module.running_var = torch.index_select(module.running_var, 0, torch.tensor(flatten_remain_index[idx]))
                 module.num_features = len(flatten_remain_index[idx])
+
             elif isinstance(module, torch.nn.Sequential):
                 for name_, module_ in module.named_children():
                     if isinstance(module_, resnet.BasicBlock):
@@ -117,10 +116,8 @@ class PruneHandler():
                                    torch.index_select(module__.weight, 0, torch.tensor(flatten_remain_index[idx])))
                                 module__.bias = torch.nn.parameter.Parameter(
                                     torch.index_select(module__.bias, 0, torch.tensor(flatten_remain_index[idx])))
-                                module__.running_mean = torch.nn.parameter.Parameter(
-                                    torch.index_select(module__.running_mean, 0, torch.tensor(flatten_remain_index[idx])))
-                                module__.running_var = torch.nn.parameter.Parameter(
-                                    torch.index_select(module__.running_var, 0, torch.tensor(flatten_remain_index[idx])))
+                                module__.running_mean = torch.index_select(module__.running_mean, 0, torch.tensor(flatten_remain_index[idx]))
+                                module__.running_var = torch.index_select(module__.running_var, 0, torch.tensor(flatten_remain_index[idx]))
                                 module__.num_features = len(flatten_remain_index[idx])
                             elif isinstance(module__, torch.nn.Sequential):  # downsample
                                 for name___, module___ in module__.named_children():
@@ -142,12 +139,10 @@ class PruneHandler():
                                         module___.bias = torch.nn.parameter.Parameter(
                                             torch.index_select(module___.bias, 0,
                                                                torch.tensor(flatten_remain_index[idx])))
-                                        module___.running_mean = torch.nn.parameter.Parameter(
-                                            torch.index_select(module___.running_mean, 0,
-                                                               torch.tensor(flatten_remain_index[idx])))
-                                        module___.running_var = torch.nn.parameter.Parameter(
-                                            torch.index_select(module___.running_var, 0,
-                                                               torch.tensor(flatten_remain_index[idx])))
+                                        module___.running_mean = torch.index_select(module___.running_mean, 0,
+                                                               torch.tensor(flatten_remain_index[idx]))
+                                        module___.running_var = torch.index_select(module___.running_var, 0,
+                                                               torch.tensor(flatten_remain_index[idx]))
                                         module___.num_features = len(flatten_remain_index[idx])
             elif isinstance(module, torch.nn.Linear):
                 module.in_features = tmp_in_channels
