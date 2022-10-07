@@ -76,3 +76,80 @@ class PruneHandler():
         #
         #             print(len(remain_index))
         #         print('-' * 20)
+
+    def reconstruction(self):
+        flatten_remain_index = []
+        for li_li_remain_index in self.remain_index:
+            for li_remain_index in li_li_remain_index:
+                for remain_index in li_remain_index:
+                    flatten_remain_index.append(remain_index)
+
+        idx = 0
+
+        for name, module in self.model.named_children():
+            if isinstance(module, torch.nn.Conv2d):
+                module.weight = torch.nn.parameter.Parameter(torch.index_select(module.weight, 0, torch.tensor(flatten_remain_index[idx])))
+                module.out_channels = len(flatten_remain_index[idx])
+                tmp_in_channels = module.out_channels
+            elif isinstance(module, torch.nn.BatchNorm2d):
+                module.weight = torch.nn.parameter.Parameter(torch.index_select(module.weight, 0, torch.tensor(flatten_remain_index[idx])))
+                module.bias = torch.nn.parameter.Parameter(torch.index_select(module.bias, 0, torch.tensor(flatten_remain_index[idx])))
+                module.running_mean = torch.index_select(module.running_mean, 0, torch.tensor(flatten_remain_index[idx]))
+                module.running_var = torch.index_select(module.running_var, 0, torch.tensor(flatten_remain_index[idx]))
+                module.num_features = len(flatten_remain_index[idx])
+
+            elif isinstance(module, torch.nn.Sequential):
+                for name_, module_ in module.named_children():
+                    if isinstance(module_, resnet.BasicBlock):
+                        for name__, module__ in module_.named_children():
+                            if isinstance(module__, torch.nn.Conv2d):
+                                module__.in_channels = tmp_in_channels
+                                module__.weight = torch.nn.parameter.Parameter(
+                                    torch.index_select(module__.weight, 1, torch.tensor(flatten_remain_index[idx])))
+                                idx += 1
+                                module__.weight = torch.nn.parameter.Parameter(
+                                    torch.index_select(module__.weight, 0, torch.tensor(flatten_remain_index[idx])))
+                                module__.out_channels = len(flatten_remain_index[idx])
+                                tmp_in_channels = module__.out_channels
+                            elif isinstance(module__, torch.nn.BatchNorm2d):
+                                module__.weight = torch.nn.parameter.Parameter(
+                                   torch.index_select(module__.weight, 0, torch.tensor(flatten_remain_index[idx])))
+                                module__.bias = torch.nn.parameter.Parameter(
+                                    torch.index_select(module__.bias, 0, torch.tensor(flatten_remain_index[idx])))
+                                module__.running_mean = torch.index_select(module__.running_mean, 0, torch.tensor(flatten_remain_index[idx]))
+                                module__.running_var = torch.index_select(module__.running_var, 0, torch.tensor(flatten_remain_index[idx]))
+                                module__.num_features = len(flatten_remain_index[idx])
+                            elif isinstance(module__, torch.nn.Sequential):  # downsample
+                                for name___, module___ in module__.named_children():
+                                    if isinstance(module___, torch.nn.Conv2d):
+                                        module___.in_channels = len(flatten_remain_index[idx-2])
+                                        module___.weight = torch.nn.parameter.Parameter(
+                                            torch.index_select(module___.weight, 1,
+                                                               torch.tensor(flatten_remain_index[idx-2])))
+                                        idx += 1
+                                        module___.weight = torch.nn.parameter.Parameter(
+                                            torch.index_select(module___.weight, 0,
+                                                               torch.tensor(flatten_remain_index[idx])))
+                                        module___.out_channels = len(flatten_remain_index[idx])
+                                        tmp_in_channels = module___.out_channels
+                                    elif isinstance(module___, torch.nn.BatchNorm2d):
+                                        module___.weight = torch.nn.parameter.Parameter(
+                                            torch.index_select(module___.weight, 0,
+                                                               torch.tensor(flatten_remain_index[idx])))
+                                        module___.bias = torch.nn.parameter.Parameter(
+                                            torch.index_select(module___.bias, 0,
+                                                               torch.tensor(flatten_remain_index[idx])))
+                                        module___.running_mean = torch.index_select(module___.running_mean, 0,
+                                                               torch.tensor(flatten_remain_index[idx]))
+                                        module___.running_var = torch.index_select(module___.running_var, 0,
+                                                               torch.tensor(flatten_remain_index[idx]))
+                                        module___.num_features = len(flatten_remain_index[idx])
+            elif isinstance(module, torch.nn.Linear):
+                module.in_features = tmp_in_channels
+                module.weight = torch.nn.parameter.Parameter(torch.index_select(module.weight, 1, torch.tensor(flatten_remain_index[idx])))
+
+    def reconstruction_model(self):
+        self.get_remain_index()
+        self.union_remain_index()
+        self.reconstruction()
+        return self.model
