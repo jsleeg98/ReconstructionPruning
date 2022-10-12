@@ -55,13 +55,14 @@ class PruneHandler():
                         li_li_remain_index.append(li_remain_index)
                 self.remain_index.append(li_li_remain_index)
 
-    def union_remain_index(self):
-        first = self.remain_index[0]  # resnet34 first conv1 insert to layer1
+    def union_remain_index_basic(self):
+        first = self.remain_index[0][0]  # resnet34 first conv1 insert to layer1
         self.remain_index[1].insert(0, [first])
         del self.remain_index[0]
 
         for li_li_remain_index in self.remain_index:
-            set_union_index = set()
+            self.set = set()
+            set_union_index = self.set
             for li_remain_index in li_li_remain_index:
                 if len(li_remain_index) != 3:
                     set_remain_index = set(li_remain_index[-1])
@@ -91,7 +92,32 @@ class PruneHandler():
         #             print(len(remain_index))
         #         print('-' * 20)
 
-    def reconstruction(self):
+    def union_remain_index_bottle(self):
+        # union index except first conv1
+        for li_li_remain_index in self.remain_index[1:]:
+            self.set = set()
+            set_union_index = self.set
+            for li_remain_index in li_li_remain_index:
+                if len(li_remain_index) == 4:
+                    set_remain_index = set(li_remain_index[-2])
+                    set_union_index = set_union_index.union(set_remain_index)
+                    set_remain_index = set(li_remain_index[-1])
+                    set_union_index = set_union_index.union(set_remain_index)
+                elif len(li_remain_index) == 3:
+                    set_remain_index = set(li_remain_index[-1])
+                    set_union_index = set_union_index.union(set_remain_index)
+            self.union_index.append(list(set_union_index))
+
+        # update remain index
+        for li_li_remain_index, li_union_index in zip(self.remain_index[1:], self.union_index):
+            for li_remain_index in li_li_remain_index:
+                if len(li_remain_index) == 4:
+                    li_remain_index[-1] = li_union_index
+                    li_remain_index[-2] = li_union_index
+                elif len(li_remain_index) == 3:
+                    li_remain_index[-1] = li_union_index
+
+    def reconstruction_basic(self):
         flatten_remain_index = []
         for li_li_remain_index in self.remain_index:
             for li_remain_index in li_li_remain_index:
