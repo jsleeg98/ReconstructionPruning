@@ -301,3 +301,13 @@ def resnet50(pretrained=False, progress=True, device="cpu", **kwargs):
     return _resnet(
         "resnet50", Bottleneck, [3, 4, 6, 3], pretrained, progress, device, **kwargs
     )
+
+def resnet152(pretrained=False, progress=True, device="cpu", **kwargs):
+    """Constructs a ResNet-50 model.
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    """
+    return _resnet(
+        "resnet50", Bottleneck, [3, 8, 36, 3], pretrained, progress, device, **kwargs
+    )
