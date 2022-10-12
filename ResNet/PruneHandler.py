@@ -23,7 +23,7 @@ class PruneHandler():
         for name, module in self.model.named_children():
             if isinstance(module, torch.nn.Conv2d):
                 tmp_remain_index = torch.where(torch.norm(module.weight, p=1, dim=(1, 2, 3)) != 0)[0].tolist()
-                self.remain_index.append(tmp_remain_index)
+                self.remain_index.append([tmp_remain_index])
             elif isinstance(module, torch.nn.Sequential):
                 li_li_remain_index = []
                 for name_, module_ in module.named_children():
