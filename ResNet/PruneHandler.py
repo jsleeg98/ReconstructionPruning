@@ -265,6 +265,10 @@ class PruneHandler():
     def reconstruction_model(self, block):
         assert block in ['basic', 'bottle']
         self.get_remain_index()
-        self.union_remain_index()
-        self.reconstruction()
+        if block == 'basic':
+            self.union_remain_index_basic()
+            self.reconstruction_basic()
+        elif block == 'bottle':
+            self.union_remain_index_bottle()
+            self.reconstruction_bottle()
         return self.model
