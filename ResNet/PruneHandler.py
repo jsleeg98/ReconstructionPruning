@@ -39,6 +39,20 @@ class PruneHandler():
                                         tmp_remain_index = torch.where(torch.norm(module___.weight, p=1, dim=(1, 2, 3)) != 0)[0].tolist()
                                         li_remain_index.append(tmp_remain_index)
                         li_li_remain_index.append(li_remain_index)
+                    elif isinstance(module_, resnet.Bottleneck):
+                        li_remain_index = []
+                        for name__, module__ in module_.named_children():
+                            if isinstance(module__, torch.nn.Conv2d):
+                                tmp_remain_index = torch.where(torch.norm(module__.weight, p=1, dim=(1, 2, 3)) != 0)[
+                                    0].tolist()
+                                li_remain_index.append(tmp_remain_index)
+                            elif isinstance(module__, torch.nn.Sequential):
+                                for name___, module___ in module__.named_children():
+                                    if isinstance(module___, torch.nn.Conv2d):
+                                        tmp_remain_index = \
+                                        torch.where(torch.norm(module___.weight, p=1, dim=(1, 2, 3)) != 0)[0].tolist()
+                                        li_remain_index.append(tmp_remain_index)
+                        li_li_remain_index.append(li_remain_index)
                 self.remain_index.append(li_li_remain_index)
 
     def union_remain_index(self):
