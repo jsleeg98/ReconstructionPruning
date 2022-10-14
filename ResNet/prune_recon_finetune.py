@@ -72,6 +72,12 @@ if args.model == 'resnet34':
 elif args.model == 'resnet18':
     model = resnet.resnet18()
     model.load_state_dict(torch.load('./pretrained_weights/resnet18.pt'))
+elif args.model == 'resnet50':
+    model = resnet.resnet50()
+    model.load_state_dict(torch.load('./pretrained_weights/resnet50.pt'))
+elif args.model == 'resnet152':
+    model = resnet.resnet152()
+    model.load_state_dict(torch.load('./ResNet/train_result/original/weight/resnet152_1.pth'))
 
 if args.ln == 1 or args.ln == 2:
     print(f'norm {args.ln} magnitude')
@@ -93,7 +99,7 @@ elif args.ln == -1:
     print('FPGM')
     for name, module in model.named_modules():
         if isinstance(module, torch.nn.Conv2d):
-            FPGM.gm_structured(module, name='weight', amount=args.compression_ratio, dim=0)
+            PruneCustom.gm_structured(module, name='weight', amount=args.compression_ratio, dim=0)
             mask = torch.norm(module.weight_mask, 1, dim=(1, 2, 3))
         if isinstance(module, torch.nn.BatchNorm2d):
             prune.l1_unstructured(module, name='weight', amount=args.compression_ratio, importance_scores=mask)
@@ -113,7 +119,10 @@ print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
 print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 
 ph = PH.PruneHandler(model)
-model = ph.reconstruction_model()
+if args.model in ['resnet18', 'resnet34']:
+    model = ph.reconstruction_model('basic')
+elif args.model in ['resnet50', 'resnet152']:
+    model = ph.reconstruction_model('bottle')
 print('reconstruction done')
 
 macs, params = get_model_complexity_info(model, (3, 32, 32), as_strings=True,
@@ -127,7 +136,7 @@ print(f'device : {device}')
 model.to(device)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.9, weight_decay=1e-5)
+optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.9, weight_decay=0.00001)
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 80], gamma=0.2)
 
 best_acc = 0
@@ -171,7 +180,6 @@ for epoch in range(100):  # loop over the dataset multiple times
         torch.save(model, f'./ResNet/train_result/pruning/weight/recon_{args.model}_{args.ln}_{args.compression_ratio}_1.pth')
         print('best model save')
     writer.flush()
-
 
 print(f'best acc : {best_acc}')
 writer.add_text('best acc', str(best_acc))

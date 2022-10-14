@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from scipy.spatial import distance
 import numpy as np
 
-class GMPruningMethod(prune.BasePruningMethod):
+class GMStructured(prune.BasePruningMethod):
     """Prune every other entry in a tensor
     """
     PRUNING_TYPE = 'structured'
@@ -115,5 +115,5 @@ def gm_structured(module, name, amount, dim, importance_scores=None):
         >>> m = nn.Linear(3, 4)
         >>> foobar_unstructured(m, name='bias')
     """
-    GMPruningMethod.apply(module, name, amount, dim, importance_scores=importance_scores)
+    GMStructured.apply(module, name, amount, dim, importance_scores=importance_scores)
     return module
