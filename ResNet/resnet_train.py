@@ -9,9 +9,16 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from models import resnet
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-m', '--model', type=str)
+parser.add_argument('-tb', type=str, default='test')
+parser.add_argument('-g', '--gpu', type=str, default='cuda:0')
 
-writer=SummaryWriter('logs/ResNet/resnet50_8')
+args = parser.parse_args()
+
+writer=SummaryWriter(f'logs/ResNet_3/{args.tb}')
 
 # train dataset
 # data augmentation
@@ -31,23 +38,44 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.5070751592371323, 0.48654887331495095, 0.4409178433670343), (0.2673342858792401, 0.2564384629170883, 0.27615047132568404))
 ])
 
-trainset = torchvision.datasets.CIFAR100('../datasets/CIFAR100/', train=True, download=True, transform=transform_train)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=16)
+trainset = torchvision.datasets.CIFAR10('../datasets/CIFAR10/', train=True, download=True, transform=transform_train)
+trainloader = torch.utils.data.DataLoader(trainset,
+                                          batch_size=32,
+                                          shuffle=True,
+                                          drop_last=True,
+                                          pin_memory=True,
+                                          num_workers=8
+                                          )
 
-testset = torchvision.datasets.CIFAR100('../datasets/CIFAR100/', train=False, download=True, transform=transform_test)
-testloader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=False)
+testset = torchvision.datasets.CIFAR10('../datasets/CIFAR10/', train=False, download=True, transform=transform_test)
+testloader = torch.utils.data.DataLoader(testset,
+                                         batch_size=32,
+                                         shuffle=False,
+                                         drop_last=True,
+                                         pin_memory=True,
+                                         num_workers=8
+                                         )
 
-model = resnet.resnet50(num_classes=100)
+if args.model == 'resnet18':
+    model = resnet.resnet18()
+elif args.model == 'resnet34':
+    model = resnet.resnet34()
+elif args.model == 'resnet50':
+    model = resnet.resnet50()
+elif args.model == 'resnet152':
+    model = resnet.resnet152()
+
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr = 0.1, momentum=0.9, weight_decay=5e-4)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2)
+optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.9, weight_decay=0.0001)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 80], gamma=0.2)
 
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+
+device = torch.device(args.gpu if torch.cuda.is_available() else 'cpu')
 print(f'device : {device}')
 model.to(device)
 
 best_acc = 0
-for epoch in range(200):  # loop over the dataset multiple times
+for epoch in range(100):  # loop over the dataset multiple times
     model.train()
     running_loss = 0.0
     print(f'epoch : {epoch + 1}')
@@ -89,6 +117,7 @@ for epoch in range(200):  # loop over the dataset multiple times
     writer.flush()
 
 print(f'best acc : {best_acc}')
+writer.add_text('best acc', str(best_acc))
 writer.close()
 
 
