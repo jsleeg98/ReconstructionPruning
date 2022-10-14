@@ -121,7 +121,7 @@ print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 ph = PH.PruneHandler(model)
 if args.model in ['resnet18', 'resnet34']:
     model = ph.reconstruction_model('basic')
-elif args.model in ['resnet50', 'resnet152']:
+elif args.model in ['resnet50', 'resnet101', 'resnet152']:
     model = ph.reconstruction_model('bottle')
 print('reconstruction done')
 
