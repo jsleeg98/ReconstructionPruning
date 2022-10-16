@@ -7,8 +7,6 @@ from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from models import resnet
 import argparse
 
 parser = argparse.ArgumentParser()
