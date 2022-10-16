@@ -12,20 +12,23 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from models import resnet
 import argparse
 import copy
-import FPGM
+import PruneCustom
 import PruneHandler as PH
 from ptflops import get_model_complexity_info
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-model', type=str, default='resnet34')
+parser.add_argument('-m', '--model', type=str, default='resnet34')
 parser.add_argument('-tb', type=str, default='test')
-parser.add_argument('-c', '--compression_ratio', type=float, default=0.7)
+parser.add_argument('-c', '--compression_ratio', type=float, default=0.5)
 parser.add_argument('-g', '--gpu', type=str, default='cuda:0')
 parser.add_argument('-ln', type=int, default=-1)
+parser.add_argument('-lr', type=float, default=0.01)
+parser.add_argument('-gamma', type=float, default=0.2)
+parser.add_argument('-wd', type=float, default=0.0001)
 
 args = parser.parse_args()
 
-writer=SummaryWriter(f'logs/ResNet_pruning_recon_1/{args.tb}')
+writer=SummaryWriter(f'logs/ResNet_6/{args.tb}_{args.compression_ratio}_{args.ln}')
 
 for name, value in vars(args).items():
     print(f'{name} : {value}')
@@ -50,7 +53,7 @@ transform_test = transforms.Compose([
 
 trainset = torchvision.datasets.CIFAR10('../datasets/CIFAR10/', train=True, download=True, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(trainset,
-                                          batch_size=256,
+                                          batch_size=128,
                                           shuffle=True,
                                           drop_last=True,
                                           pin_memory=True,
@@ -59,7 +62,7 @@ trainloader = torch.utils.data.DataLoader(trainset,
 
 testset = torchvision.datasets.CIFAR10('../datasets/CIFAR10/', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset,
-                                         batch_size=256,
+                                         batch_size=128,
                                          shuffle=False,
                                          drop_last=True,
                                          pin_memory=True,
@@ -67,17 +70,23 @@ testloader = torch.utils.data.DataLoader(testset,
                                          )
 
 if args.model == 'resnet34':
-    model = resnet.resnet34()
-    model.load_state_dict(torch.load('./pretrained_weights/resnet34.pt'))
-elif args.model == 'resnet18':
-    model = resnet.resnet18()
-    model.load_state_dict(torch.load('./pretrained_weights/resnet18.pt'))
+    model = torchvision.models.resnet34(pretrained=False)
+    conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+    model.conv1 = conv1
+    model.fc.out_features = 10
+    model.load_state_dict(torch.load('./ResNet/train_result/original/weight_3/resnet34_1.pth'))
 elif args.model == 'resnet50':
-    model = resnet.resnet50()
-    model.load_state_dict(torch.load('./pretrained_weights/resnet50.pt'))
-elif args.model == 'resnet152':
-    model = resnet.resnet152()
-    model.load_state_dict(torch.load('./ResNet/train_result/original/weight/resnet152_1.pth'))
+    model = torchvision.models.resnet50(pretrained=False)
+    conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+    model.conv1 = conv1
+    model.fc.out_features = 10
+    model.load_state_dict(torch.load('./ResNet/train_result/original/weight_3/resnet50_1.pth', map_location='cpu'))
+elif args.model == 'resnet101':
+    model = torchvision.models.resnet101(pretrained=False)
+    conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+    model.conv1 = conv1
+    model.fc.out_features = 10
+    model.load_state_dict(torch.load('./ResNet/train_result/original/weight_3/resnet101_1.pth'))
 
 if args.ln == 1 or args.ln == 2:
     print(f'norm {args.ln} magnitude')
@@ -130,14 +139,17 @@ macs, params = get_model_complexity_info(model, (3, 32, 32), as_strings=True,
 print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
 print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 writer.add_text('MAC', str(macs))
+writer.add_text('PARAMs', str(params))
+
 
 device = torch.device(args.gpu if torch.cuda.is_available() else 'cpu')
 print(f'device : {device}')
 model.to(device)
+model = nn.DataParallel(model)  # multi-GPU
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.9, weight_decay=0.00001)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 80], gamma=0.2)
+optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.wd)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50, 70], gamma=args.gamma)
 
 best_acc = 0
 for epoch in range(100):  # loop over the dataset multiple times
@@ -177,7 +189,7 @@ for epoch in range(100):  # loop over the dataset multiple times
 
     if best_acc < acc:
         best_acc = acc
-        torch.save(model, f'./ResNet/train_result/pruning/weight/recon_{args.model}_{args.ln}_{args.compression_ratio}_1.pth')
+        torch.save(model.module.state_dict(), f'./ResNet/train_result/original/weight_3/recon/{args.tb}_{args.compression_ratio}_{args.ln}.pth')
         print('best model save')
     writer.flush()
 
