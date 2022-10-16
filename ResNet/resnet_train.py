@@ -27,21 +27,20 @@ writer=SummaryWriter(f'logs/ResNet_3/{args.tb}')
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
     transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(15),
     transforms.ToTensor(),
-    transforms.Normalize((0.5070751592371323, 0.48654887331495095, 0.4409178433670343), (0.2673342858792401, 0.2564384629170883, 0.27615047132568404))
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2471, 0.2435, 0.2616))
 ])
 
 # test dataset
 # data preprocessing
 transform_test = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize((0.5070751592371323, 0.48654887331495095, 0.4409178433670343), (0.2673342858792401, 0.2564384629170883, 0.27615047132568404))
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2471, 0.2435, 0.2616))
 ])
 
 trainset = torchvision.datasets.CIFAR10('../datasets/CIFAR10/', train=True, download=True, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(trainset,
-                                          batch_size=32,
+                                          batch_size=128,
                                           shuffle=True,
                                           drop_last=True,
                                           pin_memory=True,
@@ -50,7 +49,7 @@ trainloader = torch.utils.data.DataLoader(trainset,
 
 testset = torchvision.datasets.CIFAR10('../datasets/CIFAR10/', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset,
-                                         batch_size=32,
+                                         batch_size=128,
                                          shuffle=False,
                                          drop_last=True,
                                          pin_memory=True,
