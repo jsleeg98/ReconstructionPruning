@@ -88,8 +88,8 @@ elif args.model == 'resnet101':
 
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.9, weight_decay=0.0001)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 80], gamma=0.2)
+optimizer = optim.SGD(model.parameters(), lr = args.lr, momentum=0.9, weight_decay=args.wd)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50, 70], gamma=args.gamma)
 
 
 device = torch.device(args.gpu if torch.cuda.is_available() else 'cpu')
