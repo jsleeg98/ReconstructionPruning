@@ -157,13 +157,12 @@ def main(args):
         dataset_test, batch_size=1, sampler=test_sampler, num_workers=args.workers, collate_fn=utils.collate_fn
     )
 
-    model = torchvision.models.get_model(
-        args.model,
-        weights=args.weights,
-        weights_backbone=args.weights_backbone,
-        num_classes=num_classes,
-        aux_loss=args.aux_loss,
-    )
+    # model
+    if args.model == 'fcn_resnet50':
+        model = torchvision.models.segmentation.fcn_resnet50(weights=torchvision.models.segmentation.FCN_ResNet50_Weights)
+    elif args.model == 'fcn_resnet101':
+        model = torchvision.models.segmentation101(weights=torchvision.models.segmentation.FCN_ResNet101_Weights)
+
     model.to(device)
     if args.distributed:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
