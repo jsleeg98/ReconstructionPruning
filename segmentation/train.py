@@ -10,7 +10,7 @@ import torchvision
 import utils
 from coco_utils import get_coco
 from torch import nn
-# from torch.optim.lr_scheduler import PolynomialLR
+from torch.optim.lr_scheduler import MultiStepLR
 from torchvision.transforms import functional as F, InterpolationMode
 
 
@@ -114,10 +114,10 @@ def train_one_epoch(model, criterion, optimizer, data_loader, lr_scheduler, devi
             loss.backward()
             optimizer.step()
 
-        lr_scheduler.step()
+
 
         metric_logger.update(loss=loss.item(), lr=optimizer.param_groups[0]["lr"])
-
+    lr_scheduler.step()
 
 def main(args):
     if args.output_dir:
@@ -157,13 +157,12 @@ def main(args):
         dataset_test, batch_size=1, sampler=test_sampler, num_workers=args.workers, collate_fn=utils.collate_fn
     )
 
-    model = torchvision.models.get_model(
-        args.model,
-        weights=args.weights,
-        weights_backbone=args.weights_backbone,
-        num_classes=num_classes,
-        aux_loss=args.aux_loss,
-    )
+    # model
+    if args.model == 'fcn_resnet50':
+        model = torchvision.models.segmentation.fcn_resnet50(weights=torchvision.models.segmentation.FCN_ResNet50_Weights)
+    elif args.model == 'fcn_resnet101':
+        model = torchvision.models.segmentation101(weights=torchvision.models.segmentation.FCN_ResNet101_Weights)
+
     model.to(device)
     if args.distributed:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
@@ -185,9 +184,7 @@ def main(args):
     scaler = torch.cuda.amp.GradScaler() if args.amp else None
 
     iters_per_epoch = len(data_loader)
-    main_lr_scheduler = PolynomialLR(
-        optimizer, total_iters=iters_per_epoch * (args.epochs - args.lr_warmup_epochs), power=0.9
-    )
+    main_lr_scheduler = MultiStepLR(optimizer, milestones=[50, 70], gamma=0.2)
 
     if args.lr_warmup_epochs > 0:
         warmup_iters = iters_per_epoch * args.lr_warmup_epochs
@@ -257,15 +254,15 @@ def get_args_parser(add_help=True):
 
     parser = argparse.ArgumentParser(description="PyTorch Segmentation Training", add_help=add_help)
 
-    parser.add_argument("--data-path", default="/datasets01/COCO/022719/", type=str, help="dataset path")
-    parser.add_argument("--dataset", default="coco", type=str, help="dataset name")
-    parser.add_argument("--model", default="fcn_resnet101", type=str, help="model name")
+    parser.add_argument("--data-path", default="../datasets/VOC_2012", type=str, help="dataset path")
+    parser.add_argument("--dataset", default="voc", type=str, help="dataset name")
+    parser.add_argument("--model", default="fcn_resnet50", type=str, help="model name")
     parser.add_argument("--aux-loss", action="store_true", help="auxiliar loss")
     parser.add_argument("--device", default="cuda", type=str, help="device (Use cuda or cpu Default: cuda)")
     parser.add_argument(
-        "-b", "--batch-size", default=8, type=int, help="images per gpu, the total batch size is $NGPU x batch_size"
+        "-b", "--batch-size", default=16, type=int, help="images per gpu, the total batch size is $NGPU x batch_size"
     )
-    parser.add_argument("--epochs", default=30, type=int, metavar="N", help="number of total epochs to run")
+    parser.add_argument("--epochs", default=100, type=int, metavar="N", help="number of total epochs to run")
 
     parser.add_argument(
         "-j", "--workers", default=16, type=int, metavar="N", help="number of data loading workers (default: 16)"
