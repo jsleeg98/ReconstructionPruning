@@ -114,10 +114,10 @@ def train_one_epoch(model, criterion, optimizer, data_loader, lr_scheduler, devi
             loss.backward()
             optimizer.step()
 
-        lr_scheduler.step()
+
 
         metric_logger.update(loss=loss.item(), lr=optimizer.param_groups[0]["lr"])
-
+    lr_scheduler.step()
 
 def main(args):
     if args.output_dir:
