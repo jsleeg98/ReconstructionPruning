@@ -117,3 +117,25 @@ def gm_structured(module, name, amount, dim, importance_scores=None):
     """
     GMStructured.apply(module, name, amount, dim, importance_scores=importance_scores)
     return module
+
+def shortcut_structured(parameters, pruning_method, importance_scores=None, **kwargs):
+    container = prune.PruningContainer()
+    container._tensor_name = 'temp'
+    method = pruning_method(**kwargs)
+    method._tensor_name = 'temp'
+    container.add_pruning_method(method)
+
+    li_param = []
+    for module, name in parameters:
+        param = getattr(module, name)
+        li_param.append(param)
+    final_param = torch.cat(li_param, 1)
+    import pdb; pdb.set_trace()
+
+    for module, name in parameters:
+        param = getattr(module, name)
+        default_mask = torch.zeros_like(param)
+        import pdb; pdb.set_trace()
+        param_mask = container.compute_mask(final_param, default_mask)
+        prune.custom_from_mask(module, name, mask=param_mask)
+
