@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from models import resnet
+import torchvision.models.resnet as resnet
 import argparse
 import copy
 
