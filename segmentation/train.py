@@ -254,15 +254,15 @@ def get_args_parser(add_help=True):
 
     parser = argparse.ArgumentParser(description="PyTorch Segmentation Training", add_help=add_help)
 
-    parser.add_argument("--data-path", default="/datasets01/COCO/022719/", type=str, help="dataset path")
-    parser.add_argument("--dataset", default="coco", type=str, help="dataset name")
-    parser.add_argument("--model", default="fcn_resnet101", type=str, help="model name")
+    parser.add_argument("--data-path", default="../datasets/VOC_2012", type=str, help="dataset path")
+    parser.add_argument("--dataset", default="voc", type=str, help="dataset name")
+    parser.add_argument("--model", default="fcn_resnet50", type=str, help="model name")
     parser.add_argument("--aux-loss", action="store_true", help="auxiliar loss")
     parser.add_argument("--device", default="cuda", type=str, help="device (Use cuda or cpu Default: cuda)")
     parser.add_argument(
-        "-b", "--batch-size", default=8, type=int, help="images per gpu, the total batch size is $NGPU x batch_size"
+        "-b", "--batch-size", default=16, type=int, help="images per gpu, the total batch size is $NGPU x batch_size"
     )
-    parser.add_argument("--epochs", default=30, type=int, metavar="N", help="number of total epochs to run")
+    parser.add_argument("--epochs", default=100, type=int, metavar="N", help="number of total epochs to run")
 
     parser.add_argument(
         "-j", "--workers", default=16, type=int, metavar="N", help="number of data loading workers (default: 16)"
