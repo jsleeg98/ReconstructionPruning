@@ -30,3 +30,22 @@ Reconstruct structured pruning
 |compress 0.5|4.776|29.10%|7,182,739|0.7820|
 |compress 0.7|3.228|19.67%|5,869,315|0.7367|
 |compress 0.9|0.913|5.57%|2,490,926|0.4848|
+
+---
+
+# model
+* resnet18
+* resnet34
+* resnet50
+* resnet101
+
+# train result
+![acc_graph](/README_image/resnet_original_acc.svg)
+
+|model|FLOPs(M)|Params(M)|Accuracy|
+|:--:|:--:|:--:|:--:|
+|resnet18|281.70|11.17|90.77%|
+|resnet34|585.32|21.79|92.47%|
+|resnet50|661.00|25.55|92.67%|
+|resnet101|1267.58|44.54|93.30%|
+
