@@ -41,6 +41,10 @@ Reconstruct structured pruning
 
 # train result
 ![acc_graph](/README_image/resnet_original_acc.svg)
+* orange : resnet101
+* blue : resnet50
+* gray : resnet34
+* blue : resnet18
 
 |model|FLOPs(M)|Params(M)|Accuracy|
 |:--:|:--:|:--:|:--:|
