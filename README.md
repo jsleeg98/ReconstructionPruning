@@ -53,3 +53,14 @@ Reconstruct structured pruning
 |resnet50|661.00|25.55|92.67%|
 |resnet101|1267.58|44.54|93.30%|
 
+# compression
+## resnet34
+|model|compression ratio|method|FLOPs(M)|Params(M)|Accuracy|
+|:--:|:--:|:--:|:--:|:--:|:--:|
+|resnet18|-|-|281.7M|11.17|90.77%|
+|resnet34|-|-|585.32|21.79|92.67%|
+|resnet34|0.5|L1|281.42|10.33|92.13%|
+|resnet34|0.5|L2|280.86|10.23|91.72%|
+|resnet34|0.5|GM|286.12|10.73|91.14%|
+
+
