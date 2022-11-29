@@ -59,6 +59,7 @@ class ListDataset(Dataset):
     def __init__(self, list_path, img_size=416, multiscale=True, transform=None):
         with open(list_path, "r") as file:
             self.img_files = file.readlines()
+        # self.org_labels = np.array([0, 2, 3, 5, 7])
         self.label_files = []
         for path in self.img_files:
             image_dir = os.path.dirname(path)
@@ -100,6 +101,19 @@ class ListDataset(Dataset):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 boxes = np.loadtxt(label_path).reshape(-1, 5)
+
+                # LitBig label mapping ([0, 2, 3, 5, 7] -> [0, 1, 2, 3, 4])
+                for box in boxes:
+                    if box[0] == 0:
+                        box[0] = 0
+                    elif box[0] == 2:
+                        box[0] = 1
+                    elif box[0] == 3:
+                        box[0] = 2
+                    elif box[0] == 5:
+                        box[0] = 3
+                    elif box[0] == 7:
+                        box[0] = 4
         except Exception:
             print(f"Could not read label '{label_path}'.")
             return
@@ -112,6 +126,7 @@ class ListDataset(Dataset):
             except Exception:
                 print("Could not apply transform.")
                 return
+
         return img_path, img, bb_targets
 
     def collate_fn(self, batch):
