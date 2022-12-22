@@ -117,6 +117,31 @@ class PruneHandler():
                 elif len(li_remain_index) == 3:
                     li_remain_index[-1] = li_union_index
 
+    def and_remain_index_bottle(self):
+        # union index except first conv1
+        for li_li_remain_index in self.remain_index[1:]:
+            self.set = set()
+            set_union_index = self.set
+            for li_remain_index in li_li_remain_index:
+                if len(li_remain_index) == 4:
+                    set_remain_index = set(li_remain_index[-2])
+                    set_union_index = set_union_index.union(set_remain_index)
+                    set_remain_index = set(li_remain_index[-1])
+                    set_union_index = set_union_index.intersection(set_remain_index)
+                elif len(li_remain_index) == 3:
+                    set_remain_index = set(li_remain_index[-1])
+                    set_union_index = set_union_index.intersection(set_remain_index)
+            self.union_index.append(list(set_union_index))
+
+        # update remain index
+        for li_li_remain_index, li_union_index in zip(self.remain_index[1:], self.union_index):
+            for li_remain_index in li_li_remain_index:
+                if len(li_remain_index) == 4:
+                    li_remain_index[-1] = li_union_index
+                    li_remain_index[-2] = li_union_index
+                elif len(li_remain_index) == 3:
+                    li_remain_index[-1] = li_union_index
+
     def reconstruction_basic(self):
         flatten_remain_index = []
         for li_li_remain_index in self.remain_index:
@@ -262,13 +287,18 @@ class PruneHandler():
                 module.in_features = tmp_in_channels
                 module.weight = torch.nn.parameter.Parameter(torch.index_select(module.weight, 1, torch.tensor(flatten_remain_index[idx])))
         # import pdb; pdb.set_trace()
-    def reconstruction_model(self, block):
+    def reconstruction_model(self, block, operation='OR'):
         assert block in ['basic', 'bottle']
         self.get_remain_index()
         if block == 'basic':
             self.union_remain_index_basic()
             self.reconstruction_basic()
-        elif block == 'bottle':
+        elif block == 'bottle' and operation == 'OR':
             self.union_remain_index_bottle()
             self.reconstruction_bottle()
+        elif block == 'bottle' and operation == 'AND':
+            print('and')
+            self.and_remain_index_bottle()
+            self.reconstruction_bottle()
+
         return self.model
