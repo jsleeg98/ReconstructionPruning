@@ -43,7 +43,7 @@ testset = torchvision.datasets.CIFAR10('../datasets/CIFAR10/', train=False, down
 testloader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=False)
 
 model = resnet.resnet34()
-model.load_state_dict(torch.load('./ResNet/train_result/pruning/weight/resnet34_2_0.25_7.pth'))
+model.load_state_dict(torch.load('./ResNet/train_result/original/weight/resnet152_test.pth'))
 
 device = torch.device(args.gpu if torch.cuda.is_available() else 'cpu')
 print(f'device : {device}')

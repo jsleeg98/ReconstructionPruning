@@ -294,10 +294,11 @@ class PruneHandler():
             self.union_remain_index_basic()
             self.reconstruction_basic()
         elif block == 'bottle' and operation == 'OR':
+            print('OR')
             self.union_remain_index_bottle()
             self.reconstruction_bottle()
         elif block == 'bottle' and operation == 'AND':
-            print('and')
+            print('AND')
             self.and_remain_index_bottle()
             self.reconstruction_bottle()
 

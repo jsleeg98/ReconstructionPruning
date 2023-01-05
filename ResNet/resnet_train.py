@@ -19,7 +19,7 @@ parser.add_argument('-wd', type=float, default=0.0001)
 
 args = parser.parse_args()
 
-writer=SummaryWriter(f'logs/ResNet_3/{args.tb}')
+writer=SummaryWriter(f'logs/ResNet_5/{args.tb}')
 
 # train dataset
 # data augmentation
