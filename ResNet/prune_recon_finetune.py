@@ -15,6 +15,7 @@ import copy
 import PruneCustom
 import PruneHandler as PH
 from ptflops import get_model_complexity_info
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-m', '--model', type=str, default='resnet34')
@@ -28,7 +29,7 @@ parser.add_argument('-wd', type=float, default=0.0001)
 
 args = parser.parse_args()
 
-writer=SummaryWriter(f'logs/ResNet_6/{args.tb}_{args.compression_ratio}_{args.ln}')
+writer=SummaryWriter(f'logs/time/{args.tb}_{args.compression_ratio}_{args.ln}')
 
 for name, value in vars(args).items():
     print(f'{name} : {value}')
@@ -68,8 +69,13 @@ testloader = torch.utils.data.DataLoader(testset,
                                          pin_memory=True,
                                          num_workers=16
                                          )
-
-if args.model == 'resnet34':
+if args.model == 'resnet18':
+    model = torchvision.models.resnet18(pretrained=False)
+    conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+    model.conv1 = conv1
+    model.fc.out_features = 10
+    # model.load_state_dict(torch.load('./ResNet/train_result/original/weight_3/resnet34_1.pth'))
+elif args.model == 'resnet34':
     model = torchvision.models.resnet34(pretrained=False)
     conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
     model.conv1 = conv1
@@ -121,11 +127,11 @@ elif args.ln == -1:
             prune.remove(module, 'weight')
             prune.remove(module, 'bias')
 
-
-macs, params = get_model_complexity_info(model, (3, 32, 32), as_strings=True,
+macs, params = get_model_complexity_info(model, (3, 32, 32), as_strings=False,
                                            print_per_layer_stat=False, verbose=True)
 print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
-print('{:<30}  {:<8}'.format('Number of parameters: ', params))
+print('{:<30}  {:<8}'.format('FLOPs(M): ', float(macs) * 2 / (10 ** 6)))
+print('{:<30}  {:<8}'.format('Number of parameters(M): ', params / (10 ** 6)))
 
 ph = PH.PruneHandler(model)
 if args.model in ['resnet18', 'resnet34']:
@@ -134,13 +140,13 @@ elif args.model in ['resnet50', 'resnet101', 'resnet152']:
     model = ph.reconstruction_model('bottle')
 print('reconstruction done')
 
-macs, params = get_model_complexity_info(model, (3, 32, 32), as_strings=True,
+macs, params = get_model_complexity_info(model, (3, 32, 32), as_strings=False,
                                            print_per_layer_stat=False, verbose=True)
 print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
-print('{:<30}  {:<8}'.format('Number of parameters: ', params))
+print('{:<30}  {:<8}'.format('FLOPs(M): ', float(macs) * 2 / (10 ** 6)))
+print('{:<30}  {:<8}'.format('Number of parameters(M): ', params / (10 ** 6)))
 writer.add_text('MAC', str(macs))
 writer.add_text('PARAMs', str(params))
-
 
 device = torch.device(args.gpu if torch.cuda.is_available() else 'cpu')
 print(f'device : {device}')
@@ -151,8 +157,10 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.wd)
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50, 70], gamma=args.gamma)
 
+total_time = 0
 best_acc = 0
 for epoch in range(100):  # loop over the dataset multiple times
+    start_time = time.time()
     model.train()
     running_loss = 0.0
     print(f'epoch : {epoch + 1}')
@@ -185,6 +193,9 @@ for epoch in range(100):  # loop over the dataset multiple times
             correct += (predicted == labels).sum().item()
     acc = 100 * correct / total
     print(f'Accuracy : {100 * correct / total}%')
+    epoch_time = time.time() - start_time
+    writer.add_scalar("Acc/time", acc, epoch_time + total_time)
+    total_time = epoch_time + total_time
     writer.add_scalar("Acc/test", acc, epoch)
 
     if best_acc < acc:
